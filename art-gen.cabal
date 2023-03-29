@@ -1,0 +1,30 @@
+cabal-version:      2.4
+name:               art-gen
+version:            0.1.0.0
+synopsis:           A Haskell package for generating timeline diagrams
+description:        This package generates SVG art for timeline diagrams
+license:            MIT
+author:             Lawrence Dunn
+maintainer:         dunnla@seas.upenn.edu
+category:           Diagrams
+
+extra-source-files:
+    README.md
+
+executable art-gen
+    main-is:          Main.hs
+    other-modules:    Lib, PartialOrder
+    hs-source-dirs:   generator
+    build-depends:    base >=4.11 && < 4.18
+                    , diagrams-contrib
+                    , diagrams-lib >= 1.4 && < 1.5
+                    , diagrams-svg >= 1.4 && < 1.5
+                    , diagrams-rasterific
+                    , SVGFonts >= 1.8 && < 1.9
+                    , colour == 2.3.*
+                    , palette == 0.3.*
+    default-language: Haskell2010
+    default-extensions:
+                      NoMonomorphismRestriction
+                    , FlexibleContexts
+                    , TypeFamilies
