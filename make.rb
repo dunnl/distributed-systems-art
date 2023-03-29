@@ -2,14 +2,22 @@ def command?(command)
   system("which #{command} > /dev/null 2>&1")
 end
 
-if ENV['generator']
-  $builder = ENV['generator']
-  print("Using builder $builder")
-elsif command?("generator") then
+# Check if the generator command is in the path. If so we are probably
+# in a Nix build shell with the generator as a buildInput
+if command?("generator") then
   $builder = "generator"
+# Else check if the generator is passed as an environmental variable and use that
+elsif ENV['generator']
+  $builder = ENV['generator']
 else
-  $builder = "cabal run art-gen --"
+  # Else check try running the generator with cabal (useful for local development)
+  #$builder = "cabal run generator --"
+  # Actually, don't do this. If it has been built locally already, it will crash the system."
+  exit 1
+  print "Refusing to run \"cabal run generator\" to prevent the system from hanging"
 end
+
+print "make.rb: Set builder to \"#{$builder}\""
 
 def go (dir, selections, sizes)
   Dir.mkdir dir unless File.directory? dir

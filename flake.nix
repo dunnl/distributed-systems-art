@@ -8,11 +8,13 @@
     "tweag-jupyter.cachix.org-1:UtNH4Zs6hVUFpFBTLaA4ejYavPo5EFFqgd7G7FxGW9g="
   ];
 
-  inputs.flake-compat.url = github:edolstra/flake-compat;
-  inputs.flake-compat.flake = false;
-  inputs.flake-utils.url = github:numtide/flake-utils;
-  inputs.nixpkgs.url = github:NixOS/nixpkgs/nixos-22.11;
-  inputs.jupyenv.url = github:tweag/jupyenv;
+  inputs =
+    { flake-compat.url = github:edolstra/flake-compat;
+      flake-compat.flake = false;
+      flake-utils.url = github:numtide/flake-utils;
+      nixpkgs.url = github:NixOS/nixpkgs/nixos-22.11;
+      jupyenv.url = github:tweag/jupyenv;
+    };
 
   outputs = {
     self,
@@ -39,18 +41,18 @@
           packages = rec
             { default = jupyterlab;
               inherit jupyterlab;
-              art-gen =
-                pkgs.haskellPackages.callPackage (import ./art-gen.nix) {};
-              art = pkgs.stdenv.mkDerivation rec {
+              generator =
+                pkgs.haskellPackages.callPackage (import ./generator.nix) {};
+              art = pkgs.stdenv.mkDerivation {
                 name = "art";
                 src = ./.;
                 phases = "buildPhase installPhase";
                 version = "0.1";
                 buildInputs = [ pkgs.ruby
                                 pkgs.which
-                                art-gen
+                                generator
                               ];
-                generator = art-gen;
+                inherit generator;
                 buildPhase = ''
                   ruby $src/make.rb
                   '';
@@ -58,17 +60,8 @@
                   mkdir -p $out
                   cp -r _out/* $out
                   '';
-                meta = {
-                  description = "Art for a memo";
-                  longDescription = ''
-                  This package contains diagrams for a memo
-                  generated with Haskell's diagram package.
-                  '';
-                  homepage = "http://tealeaves.science";
-                  license = pkgs.lib.licenses.mit;
                 };
               };
-            };
           apps =
             { default =
                 { program = "${jupyterlab}/bin/jupyter-lab";

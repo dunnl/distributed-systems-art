@@ -1,5 +1,5 @@
 cabal-version:      2.4
-name:               art-gen
+name:               generator
 version:            0.1.0.0
 synopsis:           A Haskell package for generating timeline diagrams
 description:        This package generates SVG art for timeline diagrams
@@ -11,7 +11,7 @@ category:           Diagrams
 extra-source-files:
     README.md
 
-executable art-gen
+executable generator
     main-is:          Main.hs
     other-modules:    Lib, PartialOrder
     hs-source-dirs:   generator

@@ -2,7 +2,7 @@
 , diagrams-svg, lib, palette, SVGFonts, nix-gitignore
 }:
 mkDerivation {
-  pname = "art-gen";
+  pname = "generator";
   version = "0.1.0.0";
   src = nix-gitignore.gitignoreSourcePure ./.gitignore_generator ./.;
   isLibrary = true;
