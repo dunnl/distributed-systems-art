@@ -75,6 +75,7 @@
               cabal-install
               pkgs.ruby
               pkgs.which
+              pkgs.zlib
             ];
             withHoogle = true;
           };
