@@ -25,7 +25,7 @@ opts = def & arrowHead  .~ dart
 mkNode :: String -> Double -> Double -> Diagram B
 mkNode name x y = (circle 1.5 <> text name) # named name # translate (r2 (x, y))
 
-partialOrder = (mkNode "E1" 0 0 <> mkNode "E2" 10 10 <> mkNode "E3" 20 10 <> mkNode "E5" 20 0 <> mkNode "E4" 20 (-10) <> mkNode "E6" 30 10 <> mkNode "E7" 30 (-10) <> mkNode "E8" 40 (0))
+partialOrder = (mkNode "E1" 0 0 <> mkNode "E2" 10 7 <> mkNode "E3" 20 7 <> mkNode "E5" 20 0 <> mkNode "E4" 20 (-7) <> mkNode "E6" 30 7 <> mkNode "E7" 30 (-7) <> mkNode "E8" 40 (0))
   # attachAll opts True [(toName "E1", toName "E2"), (toName "E2", toName "E3"), (toName "E1", toName "E5"), (toName "E1", toName "E4"), (toName "E3", toName "E6"), (toName "E5", toName "E6")
   , (toName "E4", toName "E6"), (toName "E3", toName "E7"), (toName "E5", toName "E7"), (toName "E4", toName "E7"), (toName "E7", toName "E8")
   ]

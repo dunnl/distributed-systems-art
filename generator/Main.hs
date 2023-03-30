@@ -5,9 +5,9 @@ import Diagrams.Backend.Rasterific.CmdLine (multiMain)
 import Lib
 import PartialOrder (partialOrder)
 
-request = pad 1.1 $
-     mkWorlds [ ("Process", 50, [("P1", "E", 70, 50)], [(70, "", "E.s", noCircle), (120, "", "E.t", noCircle)])
-              , ("Client", 10, [], [(40, "S", "C.s", mkCircle), (150, "T", "C.t", mkCircle)])
+request = padY 1.1 $
+     mkWorlds [ ("Process", 50, [("P1", "E", 90, 50)], [(70, "", "E.s", noCircle), (140, "", "E.t", noCircle)])
+              , ("Client", 10, [], [(60, "S", "C.s", mkCircle), (170, "T", "C.t", mkCircle)])
               ]
               [ (toName "S", "P1" .> "start")
               , ("P1" .> "stop", toName "T")
@@ -20,7 +20,11 @@ request = pad 1.1 $
          & tailLength .~ normal
          & headGap    .~ small
 
-externalorder = pad 1.1 $
+opts = (with & arrowHead .~ dart
+         & arrowTail .~ noTail
+         & headGap   .~ small)
+
+externalorder = padY 1.1 $
      mkWorlds [ ("P3", 80, [("P31", "E2", 30, 20), ("P32", "E3", 55, 45), ("P33", "E6", 140, 83)], [])
               , ("P2", 40, [("P21", "E1", 10, 10), ("P22", "E5", 79, 24), ("P23", "E8", 200, 33)], [])
               , ("P1", 0,  [("P11", "E4", 72, 20), ("P12", "E7", 160, 23)], [])
@@ -37,44 +41,101 @@ externalorder = pad 1.1 $
               (with & arrowHead .~ dart
                     & arrowTail .~ noTail
                     & headGap   .~ small) True
-linear1 = pad 1.1 $
+linear1 = padY 1.1 $
      mkWorlds [ ("P2", 40, [("P21", "W(y, 1)", 40, 63), ("P23", "R(x,2)", 200, 33)], [])
               , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(y,1)", 140, 83)], [])
               ]
               [
-              ] def False
-linear2 = pad 1.1 $
+              ] opts False
+linearTemplate = padY 1.1 $
+     mkWorlds [ ("P2", 40, [("P21", "W(x, 1)", 40, 63), ("P23", "R(x,_)", 200, 33)], [])
+              , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(x,_)", 140, 83)], [])
+              ]
+              [
+              ]
+              opts False
+linear2 = padY 1.1 $
      mkWorlds [ ("P2", 40, [("P21", "W(x, 1)", 40, 63), ("P23", "R(x,2)", 200, 33)], [(45, "", "", mkLinearization), (215, "", "", mkLinearization)])
               , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(x,2)", 140, 83)], [(57, "", "", mkLinearization), (180, "", "", mkLinearization)])
               ]
               [
               ]
-              def False
-linear3 = pad 1.1 $
+              opts False
+linear3 = padY 1.1 $
      mkWorlds [ ("P2", 40, [("P21", "W(x, 1)", 40, 63), ("P23", "R(x,1)", 200, 33)], [(90, "", "", mkLinearization), (215, "", "", mkLinearization)])
               , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(x,1)", 140, 83)], [(25, "", "", mkLinearization), (180, "", "", mkLinearization)])
               ]
               [
               ]
-              def False
-
-sequential1 = pad 1.1 $
+              opts False
+nonlinear0 = padY 1.1 $
+     mkWorlds [ ("P2", 40, [("P21", "W(y, 1)", 40, 63), ("P23", "R(x,2)", 200, 33)], [])
+              , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(y,0)", 140, 83)], [])
+              ]
+              [
+              ]
+              opts False
+nonlinear1 = padY 1.1 $
      mkWorlds [ ("P2", 40, [("P21", "W(x, 1)", 40, 63), ("P23", "R(x,1)", 200, 33)], [])
               , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(x,2)", 140, 83)], [])
               ]
               [
               ]
-              def False
+              opts False
+nonlinear2 = padY 1.1 $
+     mkWorlds [ ("P2", 40, [("P21", "W(x, 1)", 40, 63), ("P23", "R(x,2)", 200, 33)], [])
+              , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(x,1)", 140, 83)], [])
+              ]
+              [
+              ]
+              opts False
 
-sequential2 = pad 1.1 $
+sequential1 = nonlinear1
+
+sequential2 = padY 1.1 $
      mkWorlds [ ("P2", 40, [("P21", "W(x, 1)", 140, 43), ("P23", "R(x,1)", 200, 33)], [])
               , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(x,2)", 65, 63)], [])
               ]
               [
               ]
-              def False
+              opts False
 
-causal1 = pad 1.1 $
+sequential3 = padY 1.1 $
+     mkWorlds [ ("P", 40, [("P11", "W(x, 2)", 10, 52), ("P12", "R(x,2)", 65, 63), ("P21", "W(x, 1)", 140, 43), ("P23", "R(x,1)", 200, 33)], [])
+              ]
+              [
+              ]
+              opts False
+
+nonsequential1 = padY 1.1 $
+     mkWorlds [ ("P2", 50, [("P21", "R(y,1)", 35, 37), ("P22", "W(x,1)", 110, 18)], [])
+              , ("P1", 10, [("P11", "R(x,1)", 20, 40), ("P12", "W(y,1)", 90, 30)], [])
+              ]
+              [ (toName "S", "P1" .> "start")
+              , ("P1" .> "stop", toName "T")
+              ]
+              (with & arrowHead  .~ dart
+                & arrowTail .~ noTail
+                & headLength .~ normal
+                & tailLength .~ normal
+                & headGap    .~ small) False
+
+nonsequential_x = padY 1.1 $
+     mkWorlds [ ("P2", 50, [("P22", "W(x,1)", 110, 18)], [])
+              , ("P1", 10, [("P11", "R(x,1)", 20, 40)], [])
+              ]
+              [ (toName "S", "P1" .> "start")
+              , ("P1" .> "stop", toName "T")
+              ] def False
+nonsequential_y = padY 1.1 $
+     mkWorlds [ ("P2", 50, [("P21", "R(y,1)", 35, 37)], [])
+              , ("P1", 10, [("P12", "W(y,1)", 90, 30)], [])
+              ]
+              [ (toName "S", "P1" .> "start")
+              , ("P1" .> "stop", toName "T")
+              ] def False
+
+causal1 = padY 1.1 $
      mkWorlds [ ("P2", 40, [("P21", "W(x, 1)", 40, 63), ("P23", "R(x,2)", 200, 33)], [])
               , ("P1", 0,  [("P11", "W(x, 2)", 10, 52), ("P12", "R(x,1)", 140, 83)], [])
               ]
@@ -90,7 +151,15 @@ main = multiMain $
   , ("linear1", linear1)
   , ("linear2", linear2)
   , ("linear3", linear3)
+  , ("linearTemplate", linearTemplate)
+  , ("nonlinear0", nonlinear0)
+  , ("nonlinear1", nonlinear1)
+  , ("nonlinear2", nonlinear2)
   , ("sequential1", sequential1)
   , ("sequential2", sequential2)
+  , ("sequential3", sequential3)
+  , ("nonsequential1", nonsequential1)
+  , ("nonsequential_x", nonsequential_x)
+  , ("nonsequential_y", nonsequential_y)
   , ("causal1", causal1)
   ]
