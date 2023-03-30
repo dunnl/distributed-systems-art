@@ -56,8 +56,8 @@ noCircle lbl = mkPointLabel lbl # translateY (-10)
 
 mkLinearization :: String -> Diagram B
 mkLinearization _ =
-  --rect 3 3 # fc red # lw 0 # translateY 1.5
-  rect 3 13 # fc red # lw 0 # translateY 2.5
+  rect 3 3 # fc red # lw 0 # translateY 1.5
+  --rect 3 13 # fc red # lw 0 # translateY 2.5
 
 attach :: ArrowOpts Double -> Bool -> (Name, Name) -> Diagram B -> Diagram B
 attach opts dashed (n1, n2) =
