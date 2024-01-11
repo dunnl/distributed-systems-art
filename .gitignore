@@ -1,17 +1,25 @@
-####################
-# Other ignores
-####################
+# Ignore output directory containing generated images
 _out/
+
+# Ignore this weirdly-named Haskell folder
 dist-newstyle/
 
+# Ignore direnv folder (https://direnv.net/)
 .direnv/**
-# Ignore build outputs from performing a nix-build or `nix build` command
+
+# Ignore build outputs from performing `nix-build` or `nix build`
 result
 result-*
 
-# gitignore template for Jupyter Notebooks
-# website: http://jupyter.org/
+# Ignore all generated images that might get created
+*.pdf
+*.png
 
+####################
+# The following was taken from a gitignore template for Jupyter
+# Notebooks (http://jupyter.org/)
+# https://github.com/github/gitignore/blob/main/community/Python/JupyterNotebooks.gitignore
+####################
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
