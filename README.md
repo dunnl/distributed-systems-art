@@ -43,6 +43,14 @@ nix run .#generator -- --help
 
 Note that the first `--` is used to separate arguments to `nix` and arguments to `generator`.
 
+To work on the Haskell library, launch a development shell with
+
+``` shell
+nix develop
+```
+
+which provides `cabal-install`, etc.
+
 ### The Ruby script
 
 ``` shell
