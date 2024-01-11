@@ -4,6 +4,6 @@
   };
   kernel.haskell.minimal = {
     enable = true;
-    extraHaskellPackages = ps: with ps; [ diagrams ihaskell-diagrams ];
+    extraHaskellPackages = ps: with ps; [ diagrams diagrams-pgf ihaskell-diagrams ];
   };
 }

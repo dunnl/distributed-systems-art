@@ -1,4 +1,4 @@
-{ mkDerivation, base, colour, diagrams-contrib, diagrams-lib, diagrams-rasterific
+{ mkDerivation, base, colour, diagrams-contrib, diagrams-lib, diagrams-rasterific, diagrams-pgf
 , diagrams-svg, lib, palette, SVGFonts, nix-gitignore
 }:
 mkDerivation {
@@ -14,6 +14,7 @@ mkDerivation {
     diagrams-lib
     diagrams-rasterific
     diagrams-svg
+    diagrams-pgf
     palette
     SVGFonts
   ];

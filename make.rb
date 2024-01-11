@@ -26,7 +26,7 @@ def go (dir, selections, sizes)
   selections.each do |sel|
     sizes.each do |size|
       print "Creating #{sel}\n"
-      command = "#{$builder} --selection #{sel} --output #{dir}/#{sel}.png --width #{size}"
+      command = "#{$builder} --selection #{sel} --output #{dir}/#{sel}.pgf --width #{size}"
       Kernel.system(command, :out => fdout, :err => fderr)
     end
   end

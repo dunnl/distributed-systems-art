@@ -1,7 +1,7 @@
 module Lib where
 
 import Diagrams.Prelude
-import Diagrams.Backend.Rasterific
+import Diagrams.Backend.PGF
 
 mkProcLabel :: String -> Diagram B
 mkProcLabel lbl =
@@ -11,7 +11,7 @@ mkProcLabel lbl =
 mkProcLine :: String -> Diagram B
 mkProcLine name =
   mkProcLabel name |||
-  arrowBetween' (with & arrowHead .~ tri & headLength .~ small) (p2 (0, 0)) (p2 (250,0)) # lwL 1 # lc black
+  arrowBetween' (with & arrowHead .~ tri & headLength .~ small) (p2 (0, 0)) (p2 (400,0)) # lwL 1 # lc black
 
 mkEventLabel :: String
              -> Diagram B

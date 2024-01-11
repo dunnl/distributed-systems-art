@@ -20,6 +20,7 @@ executable generator
                     , diagrams-lib >= 1.4 && < 1.5
                     , diagrams-svg >= 1.4 && < 1.5
                     , diagrams-rasterific
+                    , diagrams-pgf
                     , SVGFonts >= 1.8 && < 1.9
                     , colour == 2.3.*
                     , palette == 0.3.*
