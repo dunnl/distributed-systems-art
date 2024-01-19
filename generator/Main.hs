@@ -1,10 +1,150 @@
 module Main (main) where
 
-import Diagrams.Prelude
-import Diagrams.Backend.PGF.CmdLine (multiMain)
+import Backend
 import Lib
 import PartialOrder (partialOrder)
+import Diagrams.Prelude
 
+messagePassingArrowOpts = with & arrowHead  .~ dart
+       & arrowTail .~ noTail
+       & headLength .~ normal
+       & tailLength .~ normal
+       & headGap    .~ small
+
+messagePassingExample :: Diagram B
+messagePassingExample = pad 1.1 $
+     mkWorlds [ ("$P_1$", 70, [], [(50, "m2s", "$m_2^\\textrm{send}$", Just (0, 10), mkCircle), (95, "m1r", "$m_1^\\textrm{recv}$", Just (0, 10), mkCircle), (140, "m4s", "$m_4^\\textrm{send}$", Just (0, 10), mkCircle), (315, "m3r", "$m_3^\\textrm{recv}$", Just (0, 10), mkCircle)])
+              , ("$P_2$", 10, [], [(40, "m1s", "$m_1^\\textrm{send}$", Just (0, -10), mkCircle), (255, "m5s", "$m_5^\\textrm{send}$", Just (5, 10), mkCircle), (195, "m4r", "$m_4^\\textrm{recv}$", Just (6, 10), mkCircle)])
+              , ("$P_3$", -50, [], [(110, "m3s", "$m_3^\\textrm{send}$", Just (0, -10), mkCircle), (320, "m5r", "$m_5^\\textrm{recv}$", Just (0, -10), mkCircle), (260, "m2r", "$m_2^\\textrm{recv}$", Just (0, -10), mkCircle)])
+              ]
+              [ ("m1s", "m1r")
+              , ("m4s", "m4r")
+              , ("m3s", "m3r")
+              , ("m5s", "m5r")
+              , ("m2s", "m2r")
+              ]
+              messagePassingArrowOpts False
+
+messagePassingExampleScalar :: Diagram B
+messagePassingExampleScalar = pad 1.1 $
+     mkWorlds [ ("$P_1$", 70, [], [(50, "m2s", "$1$", Just (0, 10), mkCircle), (95, "m1r", "$2$", Just (0, 10), mkCircle), (140, "m4s", "$3$", Just (0, 10), mkCircle), (315, "m3r", "$4$", Just (0, 10), mkCircle)])
+              , ("$P_2$", 10, [], [(40, "m1s", "$1$", Just (0, -10), mkCircle), (255, "m5s", "$5$", Just (5, 10), mkCircle), (195, "m4r", "$4$", Just (6, 10), mkCircle)])
+              , ("$P_3$", -50, [], [(110, "m3s", "$1$", Just (0, -10), mkCircle), (320, "m5r", "$6$", Just (0, -10), mkCircle), (260, "m2r", "$2$", Just (0, -10), mkCircle)])
+              ]
+              [ ("m1s", "m1r")
+              , ("m4s", "m4r")
+              , ("m3s", "m3r")
+              , ("m5s", "m5r")
+              , ("m2s", "m2r")
+              ]
+              messagePassingArrowOpts False
+
+messagePassingExample2 :: Diagram B
+messagePassingExample2 = pad 1.1 $
+     mkWorlds [ ("$P_1$", 70, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
+              , ("$P_2$", 10, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
+              , ("$P_3$", -50, [], [ m1send ])
+              ]
+              [ ("m1send", "m1recv")
+              , ("m2send", "m2recv")
+              , ("m3send", "m3recv")
+              , ("m4send", "m4recv")
+              , ("m5send", "m5recv")
+              , ("m6send", "m6recv")
+              ]
+              messagePassingArrowOpts False
+  where
+    m1send = (20, "m1send", "$m_1^\\textrm{send}$", Just (0, -10), mkCircle)
+    m1recv = (310, "m1recv", "$m_1^\\textrm{recv}$", Just (0, 10), mkCircle)
+    m2send = (40, "m2send", "$m_2^\\textrm{send}$", Just (0, 10), mkCircle)
+    m2recv = (60, "m2recv", "$m_2^\\textrm{recv}$", Just (0, -10), mkCircle)
+    m3send = (80, "m3send", "$m_3^\\textrm{send}$", Just (0, -10), mkCircle)
+    m3recv = (100, "m3recv", "$m_3^\\textrm{recv}$", Just (0, 10), mkCircle)
+    m4send = (120, "m4send", "$m_4^\\textrm{send}$", Just (0, 10), mkCircle)
+    m4recv = (140, "m4recv", "$m_4^\\textrm{recv}$", Just (0, -10), mkCircle)
+    m5send = (210, "m5send", "$m_5^\\textrm{send}$", Just (0, -10), mkCircle)
+    m5recv = (230, "m5recv", "$m_5^\\textrm{recv}$", Just (0, 10), mkCircle)
+    m6send = (250, "m6send", "$m_6^\\textrm{send}$", Just (0, 10), mkCircle)
+    m6recv = (270, "m6recv", "$m_6^\\textrm{recv}$", Just (0, -10), mkCircle)
+
+messagePassingExampleScalar2 :: Diagram B
+messagePassingExampleScalar2 = pad 1.1 $
+     mkWorlds [ ("$P_1$", 70, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
+              , ("$P_2$", 10, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
+              , ("$P_3$", -50, [], [ m1send ])
+              ]
+              [ ("m1send", "m1recv")
+              , ("m2send", "m2recv")
+              , ("m3send", "m3recv")
+              , ("m4send", "m4recv")
+              , ("m5send", "m5recv")
+              , ("m6send", "m6recv")
+              ]
+              messagePassingArrowOpts False
+  where
+    m1send = (20, "m1send", "$1$", Just (0, -10), mkCircle)
+    m1recv = (310, "m1recv", "$10$", Just (0, 10), mkCircle)
+    m2send = (40, "m2send", "$1$", Just (0, 10), mkCircle)
+    m2recv = (60, "m2recv", "$2$", Just (0, -10), mkCircle)
+    m3send = (80, "m3send", "$3$", Just (0, -10), mkCircle)
+    m3recv = (100, "m3recv", "$4$", Just (0, 10), mkCircle)
+    m4send = (120, "m4send", "$5$", Just (0, 10), mkCircle)
+    m4recv = (140, "m4recv", "$6$", Just (0, -10), mkCircle)
+    m5send = (210, "m5send", "$7$", Just (0, -10), mkCircle)
+    m5recv = (230, "m5recv", "$8$", Just (0, 10), mkCircle)
+    m6send = (250, "m6send", "$9$", Just (0, 10), mkCircle)
+    m6recv = (270, "m6recv", "$10$", Just (0, -10), mkCircle)
+
+messagePassingExample3 :: Diagram B
+messagePassingExample3 =
+     mkWorlds [ ("$P_1$", 70, [], [ m1send, m2send, m3recv])
+              , ("$P_2$", 10, [], [ m2recv, m3send, m4send])
+              , ("$P_3$", -50, [], [ m4recv, m1recv ])
+              ]
+              [ ("m1send", "m1recv")
+              , ("m2send", "m2recv")
+              , ("m3send", "m3recv")
+              , ("m4send", "m4recv")
+              , ("m5send", "m5recv")
+              , ("m6send", "m6recv")
+              ]
+              messagePassingArrowOpts False
+  where
+    m1send = (30, "m1send", "$m_1^\\textrm{send}$", Just (-5, 10), mkCircle)
+    m1recv = (340, "m1recv", "$m_1^\\textrm{recv}$", Just (0, -10), mkCircle)
+    m2send = (40, "m2send", "$m_2^\\textrm{send}$", Just (5, 10), mkCircle)
+    m2recv = (60, "m2recv", "$m_2^\\textrm{recv}$", Just (0, -10), mkCircle)
+    m3send = (105, "m3send", "$m_3^\\textrm{send}$", Just (-5, -10), mkCircle)
+    m3recv = (135, "m3recv", "$m_3^\\textrm{recv}$", Just (0, 10), mkCircle)
+    m4send = (115, "m4send", "$m_4^\\textrm{send}$", Just (10, 10), mkCircle)
+    m4recv = (140, "m4recv", "$m_4^\\textrm{recv}$", Just (0, -10), mkCircle)
+
+messagePassingExampleScalar3 :: Diagram B
+messagePassingExampleScalar3 = pad 1.1 $
+     mkWorlds [ ("$P_1$", 70, [], [ m1send, m2send, m3recv])
+              , ("$P_2$", 10, [], [ m2recv, m3send, m4send])
+              , ("$P_3$", -50, [], [ m4recv, m1recv ])
+              ]
+              [ ("m1send", "m1recv")
+              , ("m2send", "m2recv")
+              , ("m3send", "m3recv")
+              , ("m4send", "m4recv")
+              , ("m5send", "m5recv")
+              , ("m6send", "m6recv")
+              ]
+              messagePassingArrowOpts False
+  where
+    m1send = (30, "m1send", "$1$", Just (-5, 10), mkCircle)
+    m1recv = (340, "m1recv", "$7$", Just (0, -10), mkCircle)
+    m2send = (40, "m2send", "$2$", Just (5, 10), mkCircle)
+    m2recv = (60, "m2recv", "$3$", Just (0, -10), mkCircle)
+    m3send = (105, "m3send", "$4$", Just (-5, -10), mkCircle)
+    m3recv = (135, "m3recv", "$5$", Just (0, 10), mkCircle)
+    m4send = (115, "m4send", "$5$", Just (10, 10), mkCircle)
+    m4recv = (140, "m4recv", "$6$", Just (0, -10), mkCircle)
+
+
+{-
 request = padY 1.1 $
      mkWorlds [ ("Process", 50, [("$P_1$", "E", 90, 50)], [(70, "", "E.s", noCircle), (140, "", "E.t", noCircle)])
               , ("Client", 10, [], [(60, "S", "C.s", mkCircle), (170, "T", "C.t", mkCircle)])
@@ -160,9 +300,19 @@ messages = pad 1.1 $
            & headLength .~ normal
            & tailLength .~ normal
            & headGap    .~ small
+-}
+
 
 main :: IO ()
 main = multiMain $
+  [ ("messagePassingEx", messagePassingExample)
+  , ("messagePassingExScalar", messagePassingExampleScalar)
+  , ("messagePassingEx2", messagePassingExample2)
+  , ("messagePassingExScalar2", messagePassingExampleScalar2)
+  , ("messagePassingEx3", messagePassingExample3)
+  , ("messagePassingExScalar3", messagePassingExampleScalar3)
+  ]
+  {-
   [ ("request", request)
   , ("externalorder", externalorder)
   , ("messages", messages)
@@ -182,3 +332,4 @@ main = multiMain $
   , ("nonsequential_y", nonsequential_y)
   , ("causal1", causal1)
   ]
+-}

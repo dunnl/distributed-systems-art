@@ -1,7 +1,7 @@
 module PartialOrder where
 
+import Backend
 import Diagrams.Prelude
-import Diagrams.Backend.PGF
 
 mkArrow :: ArrowOpts Double -> Bool -> Point V2 Double -> Point V2 Double ->  Diagram B
 mkArrow opts dashed = arrowBetween' opts # lw 2

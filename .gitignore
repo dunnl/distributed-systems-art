@@ -1,6 +1,9 @@
 # Ignore output directory containing generated images
 _out/
 
+# Avoid accidentally commiting PGF files
+*.pgf
+
 # Ignore this weirdly-named Haskell folder
 dist-newstyle/
 
