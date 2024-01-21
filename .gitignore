@@ -1,5 +1,6 @@
 # Ignore output directory containing generated images
 _out/
+_out-old/
 
 # Avoid accidentally commiting PGF files
 *.pgf

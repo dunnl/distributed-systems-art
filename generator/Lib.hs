@@ -12,13 +12,31 @@ myBlue = sRGB24 31 119 180
 myGreen :: Colour Double
 myGreen = sRGB24 44 160 44
 
+myHiRed :: Colour Double
+myHiRed = sRGB24 220 38 127
+
+myHiBlue :: Colour Double
+myHiBlue = sRGB24 100 143 255
+
+myHiYellow :: Colour Double
+myHiYellow = sRGB24 255 176 0
+
+myBlueA :: AlphaColour Double
+myBlueA = withOpacity myBlue 0.5
+
 _WORLDLENGTH :: Double
 _WORLDLENGTH = 350
+
+_IN_NOTEBOOK :: Bool
+_IN_NOTEBOOK = False
+
+math :: String -> String
+math str = if _IN_NOTEBOOK then str else "$" ++ str ++ "$"
 
 mkProcLabel :: String -> Diagram B
 mkProcLabel lbl =
   (text lbl # fontSizeL 5 # fc black <>
-  rect 30 20 # lw 0 # lw 0) # translateX (-15)
+  rect 30 30 # lw 0 # lw 0) # translateX (-15)
 
 -- Make a process timeline, a simple _WORLDLENGTH-length line with a label on the left
 mkProcessLine :: String -> Diagram B
@@ -28,90 +46,88 @@ mkProcessLine name =
     start = p2 (0, 0)
     end   = p2 (_WORLDLENGTH , 0)
     arrowStyle = with & arrowHead .~ tri & headLength .~ small
-    lineOpts = lwL 1 . lc black
+    lineOpts = lwL 1.5 . lc black
 
 -- Create an label on an event
-mkEventLabel :: String
-             -> Diagram B
-mkEventLabel label =
+mkOperationLabel :: String
+                 -> Diagram B
+mkOperationLabel label =
   circle 0.1 # lw 0 <>
   text label # fontSizeL 5 # translateY 5
 
-mkEvent :: String -- ^ Name
-        -> String -- ^ Label
-        -- -> (Double, Double) -- ^ Label (x,y)-offset
-        -> Double  -- ^ Start time
-        -> Double  -- ^ Duration
-        -> Diagram B
---mkEvent name label (lblx, lbly) start duration =
-mkEvent name label start duration =
-  (mkEventLabel label # showOrigin === (s <> t <> box # fc myBlue)) # translate offset
+mkOperation :: String -- ^ Name
+            -> String -- ^ Label
+            -> Double -- ^ Start time
+            -> Double -- ^ Duration
+            -> Diagram B
+mkOperation name labelstr start duration =
+  (label === operation) # translate offset
   where
-    offset = (start + duration/2) ^& 3.4
+    label = mkOperationLabel labelstr
+    offset = xoff ^& yoff
+    yoff = 3.4
+    xoff = start + (duration/2)
     box = rect duration 3 # lw 2
+    operation = s <> t <> box # fc myHiBlue
     s = mempty # named (name .> "start") # translateX (-duration/2)
     t = mempty # named (name .> "stop") # translateX (duration/2)
 
-mkPointLabel :: String -> Diagram B
-mkPointLabel lbl =
-  (text lbl # fontSizeL 5 # fc black <>
-  rect 20 10 # lw 0 # fc white)
+type OperationSpec = (String, String, Double, Double)
 
-mkPoint :: Double -- ^ X location
-        -> String -- ^ Name
+mkEventLabel :: String -> Diagram B
+mkEventLabel lbl =
+  text lbl # fontSizeL 5 # fc black
+  <>
+  rect 25 20 # lw 0 # fc white
+
+mkEvent :: String -- ^ Name
         -> String -- ^ Label
+        -> Double -- ^ Start time
         -> Maybe (Double, Double) -- ^ Label offset
         -> Diagram B -- ^ Marker
         -> Diagram B
-mkPoint xloc nm lbl mlbloff marker =
-  (marker <> label # named nm) # translateX xloc
+mkEvent name labelstr start mlbloff marker =
+  (marker <> label) # named name # translateX start
   where
-    label = mkPointLabel lbl # offset_label
+    label = if labelstr == "" then mempty else mkEventLabel labelstr # offset_label
     offset_label = maybe id (\offset -> translate (r2 offset)) mlbloff
 
-mkCircle :: Diagram B
-mkCircle  = circle 3 # fc black # lw 0
+type EventSpec = (String, String, Double, Maybe (Double, Double), Diagram B)
 
-noCircle :: String -> Diagram B
-noCircle lbl = mkPointLabel lbl # translateY (-10)
-
-linearizationPoint :: String -> Diagram B
-linearizationPoint _ =
-  rect 5 20 # fc red # lw 0 # translateY 1.5
-
-mkArrow :: ArrowOpts Double -> Bool -> Point V2 Double -> Point V2 Double ->  Diagram B
-mkArrow opts dashed = arrowBetween' opts # lwL 1 # (if dashed then dashingN [0.01,0.01] 0 else id)
-
-attach :: ArrowOpts Double -> Bool -> (Name, Name) -> Diagram B -> Diagram B
-attach opts dashed (n1, n2) =
+attach' :: (IsName n1, IsName n2) => ArrowOpts Double -> (n1, n2) -> Diagram B -> Diagram B
+attach' opts (n1, n2) =
   withName n1 $ \b1 ->
   withName n2 $ \b2 ->
-       beneath (mkArrow opts dashed (location b1) (location b2))
+       beneath (arrowBetween' opts (location b1) (location b2))
 
-attachAll :: ArrowOpts Double -> Bool -> [(String, String)] -> Diagram B -> Diagram B
-attachAll opts dashed = appEndo . foldMap (Endo . attach opts dashed . toNames)
-  where toNames (x, y) = (toName x, toName y)
+-- (arrow options, pairs of names (from, to) to draw, the diagram w/o arrows)
+attachAll' :: (IsName n1, IsName n2) => ArrowOpts Double -> [(n1, n2)] -> Diagram B -> Diagram B
+attachAll' opts = appEndo . foldMap (Endo . attach' opts)
+
+-- (arrow options, pairs of names (from, to) to draw, the diagram w/o arrows)
+attachAllOutside' :: (IsName n1, IsName n2) => ArrowOpts Double -> [(n1, n2)] -> Diagram B -> Diagram B
+attachAllOutside' opts = appEndo . foldMap (Endo . uncurry (connectOutside' opts))
 
 mkWorldLine :: String  -- ^ Left-most label
             -> Double  -- ^ Y (vertical) coordinate of worldline
-            -> [(String, String, Double, Double)] -- ^ Events
-            -> [(Double, String, String, Maybe (Double, Double), Diagram B)] -- ^ Points with rendering function
+            -> [(String, String, Double, Double)] -- ^ Operations (name of operation, label, start point, duration)
+            -> [(String, String, Double, Maybe (Double, Double), Diagram B)] -- ^ Events (name of event, label, start point, maybe (x,y) offset for label, rendering function)
             -> Diagram B
-mkWorldLine name y es pts =
-  (mconcat points <>
+mkWorldLine name y ops evs =
+  (mconcat events <>
    mkProcessLine name <>
-   mconcat events) # translateY y
-                   # (.>>) name
+   mconcat operations) # translateY y
+                       # (.>>) name
   where
-    events = (\(nm,lbl,s,dur) -> mkEvent nm lbl s dur) <$> es
-    points = (\(xloc, nm, lbl, mlbloff, marker) -> mkPoint xloc nm lbl mlbloff marker) <$> pts
+    operations = (\(nm,lbl,s,dur) -> mkOperation nm lbl s dur) <$> ops
+    events     = (\(nm,lbl,s,mlbloff,marker) -> mkEvent nm lbl s mlbloff marker) <$> evs
 
-mkWorlds :: [(String, Double, [(String, String, Double, Double)], [(Double, String, String, Maybe (Double, Double), Diagram B)])]
-         -> [(String, String)]
+mkWorlds :: (IsName n1, IsName n2)
+         => [(String, Double, [(String, String, Double, Double)], [(String, String, Double, Maybe (Double, Double), Diagram B)])]
+         -> [(n1, n2)]
          -> ArrowOpts Double
-         -> Bool
          -> Diagram B
-mkWorlds worlds points opts dashed =
-    attachAll opts dashed points ws
+mkWorlds worlds arrowPoints opts =
+    attachAll' opts arrowPoints ws
   where
-  ws = foldMap (\(name, y, events, pts) -> mkWorldLine name y events pts) worlds
+  ws = foldMap (\(name, y, ops, evs) -> mkWorldLine name y ops evs) worlds
