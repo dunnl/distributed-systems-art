@@ -1,7 +1,14 @@
-module SharedMemory
+module SharedMemory where
+{-
   ( external1
   , external2
   , externalDAG
+  , linearEx1
+  , linearEx11
+  , linearEx12
+  , linearEx13
+  , linearEx14
+  , linearEx15
   )
 where
 
@@ -110,3 +117,69 @@ externalDAG =
   , (toName "p32", toName "p33")
   ]
  where incr = _WORLDLENGTH/4
+
+op11 = ("P11", math "W(x, 1)", 35, 63)
+op12 Nothing = ("P23", math "R(x)", 200, 33)
+op12 (Just x) = ("P23", math "R(x, " ++ x ++ ")", 200, 33)
+op21 = ("P11", math "W(x, 2)", 10, 52)
+op22 Nothing = ("P12", math "R(x)", 160, 63)
+op22 (Just x) = ("P12", math "R(x, " ++ x ++ ")", 160, 63)
+
+linearEx1 =
+     mkWorlds [ (math "P_1", p1h, [op11, op12 Nothing], [])
+              , (math "P_2", p2h, [op21, op22 Nothing], [])
+              ]
+              ([] :: [(String,String)])
+              def
+
+linearEx11 =
+     mkWorlds [ (math "P_1", p1h, [op11, op12 (Just "2")], [linearpt1, linearpt2])
+              , (math "P_2", p2h, [op21, op22 (Just "2")], [linearpt3, linearpt4])
+              ]
+              ([] :: [(String,String)])
+              def
+  where
+      linearpt1 = ("", "", 45, Nothing, linearizationPoint)
+      linearpt2 = ("", "", 215, Nothing, linearizationPoint)
+      linearpt3 = ("", "", 57, Nothing, linearizationPoint)
+      linearpt4 = ("", "", 180, Nothing, linearizationPoint)
+
+linearEx12 =
+     mkWorlds [ (math "P_1", p1h, [op11, op12 (Just "1")], [linearpt1, linearpt2])
+              , (math "P_2", p2h, [op21, op22 (Just "1")], [linearpt3, linearpt4])
+              ]
+              ([] :: [(String,String)])
+              def
+  where
+      linearpt1 = ("", "", 90, Nothing, linearizationPoint)
+      linearpt2 = ("", "", 215, Nothing, linearizationPoint)
+      linearpt3 = ("", "", 25, Nothing, linearizationPoint)
+      linearpt4 = ("", "", 180, Nothing, linearizationPoint)
+
+linearEx13 =
+     mkWorlds [ (math "P_1", p1h, [op11, op12 (Just "1")], [])
+              , (math "P_2", p2h, [op21, op22 (Just "2")], [])
+              ]
+              ([] :: [(String,String)])
+              def
+op11' = ("P11", math "W(x, 1)", 150, 63)
+op12' Nothing = ("P23", math "R(x)", 220, 33)
+op12' (Just x) = ("P23", math "R(x, " ++ x ++ ")", 220, 33)
+op21' = ("P11", math "W(x, 2)", 10, 52)
+op22' Nothing = ("P12", math "R(x)", 70, 63)
+op22' (Just x) = ("P12", math "R(x, " ++ x ++ ")", 70, 63)
+
+linearEx14 =
+     mkWorlds [ (math "P_1", p1h, [op11', op12' (Just "1")], [])
+              , (math "P_2", p2h, [op21', op22' (Just "2")], [])
+              ]
+              ([] :: [(String,String)])
+              def
+
+linearEx15 =
+     mkWorlds [ (math "P_1", p1h, [op11, op12 (Just "2")], [])
+              , (math "P_2", p2h, [op21, op22 (Just "1")], [])
+              ]
+              ([] :: [(String,String)])
+              def
+-}

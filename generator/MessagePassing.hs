@@ -5,12 +5,22 @@ module MessagePassing
   , mpEx2
   , mpEx2Sc
   , mpEx2Vec
+  , mpEx3
+  , mpEx3Sc
+  , mpEx3Vec
   )
 where
 
 import Backend
 import Lib
 import Diagrams.Prelude
+
+_WORLDLINE_GAP :: Double
+_WORLDLINE_GAP = 60
+
+p1h = _WORLDLINE_GAP
+p2h = 0 :: Double
+p3h = - _WORLDLINE_GAP
 
 send :: String -> String
 send str =
@@ -26,14 +36,8 @@ vector :: (Int, Int, Int) -> String
 vector (a, b, c) = if _IN_NOTEBOOK then show (a, b, c) else
     "\\begin{bmatrix}" ++ show a ++ "\\\\" ++ show b ++ "\\\\" ++ show c ++ "\\end{bmatrix}"
 
-littleup = Just (0, 10)
-littledown = Just (0, -10)
-
-scoot :: EventSpec -> EventSpec
-scoot (a, b, c, Just (x, y), diagram) =
-  if y > 0 then (a, b, c, Just (x, y + amt), diagram)
-  else (a, b, c, Just (x, y - amt), diagram)
-  where amt = 10
+eventCircle :: Diagram B
+eventCircle  = circle 3 # fc myBlue # lw 1 # lc black
 
 messagePassingArrowOpts :: ArrowOpts Double
 messagePassingArrowOpts = with & arrowHead  .~ dart
@@ -43,27 +47,44 @@ messagePassingArrowOpts = with & arrowHead  .~ dart
        & headGap    .~ small
        & shaftStyle %~ lwL 1
 
-eventCircle :: Diagram B
-eventCircle  = circle 3 # fc myBlue # lw 1 # lc black
+-- Some offsets for simple labels
+slightlyUp :: Maybe (Double, Double)
+slightlyUp = Just (0, 10)
 
-_WORLDLINE_GAP :: Double
-_WORLDLINE_GAP = 60
+slightlyDown :: Maybe (Double, Double)
+slightlyDown = Just (0, -10)
 
-p1h = _WORLDLINE_GAP
-p2h = 0 :: Double
-p3h = - _WORLDLINE_GAP
+-- Slightly adjust an event to account for the large size of a vector
+scootForVector :: EventSpec -> EventSpec
+scootForVector spec =
+  spec { lbloffset = offsetnew, lblsize = Just (15, 35) }
+  where
+    amt = 10
+    Just (xoff, yoff) = lbloffset spec
+    y_new = if yoff > 0 then yoff + amt else yoff - amt
+    offsetnew = Just (xoff, y_new)
+
+
+-- Create a basic event from some data
+simpleEvent :: String -- ^ Name
+            -> Double -- ^ Start time
+            -> Maybe (Double, Double) -- ^ Label offset
+            -> String -- ^ Label text
+            -> EventSpec
+simpleEvent name start lbloff lbl =
+  EventSpec eventCircle name (math lbl) start lbloff Nothing
 
 ---- Example 1
-ex1m1send lbl = ("m1s", math lbl, 30, littledown, eventCircle)
-ex1m2send lbl = ("m2s", math lbl, 50, littleup, eventCircle)
-ex1m1recv lbl = ("m1r", math lbl, 95, littleup, eventCircle)
-ex1m3send lbl = ("m3s", math lbl, 110, littledown, eventCircle)
-ex1m4send lbl = ("m4s", math lbl, 140, littleup, eventCircle)
-ex1m4recv lbl = ("m4r", math lbl, 195, Just (6, 10), eventCircle)
-ex1m5send lbl = ("m5s", math lbl, 245, Just (5, 10), eventCircle)
-ex1m2recv lbl = ("m2r", math lbl, 260, littledown, eventCircle)
-ex1m3recv lbl = ("m3r", math lbl, 315, littleup, eventCircle)
-ex1m5recv lbl = ("m5r", math lbl, 320, littledown, eventCircle)
+ex1m1send = simpleEvent "m1s" 30 slightlyDown
+ex1m2send = simpleEvent "m2s" 50 slightlyUp
+ex1m1recv = simpleEvent "m1r" 95 slightlyUp
+ex1m3send = simpleEvent "m3s" 110 slightlyDown
+ex1m4send = simpleEvent "m4s" 140 slightlyUp
+ex1m4recv = simpleEvent "m4r" 195 (Just (6, 10))
+ex1m5send = simpleEvent "m5s" 245 (Just (5, 10))
+ex1m2recv = simpleEvent "m2r" 260 slightlyDown
+ex1m3recv = simpleEvent "m3r" 315 slightlyUp
+ex1m5recv = simpleEvent "m5r" 320 slightlyDown
 
 ex1arrows =
     [ ("m1s", "m1r")
@@ -75,9 +96,9 @@ ex1arrows =
 
 mpEx1 :: Diagram B
 mpEx1 =
-     mkWorlds [ ("$P_1$", p1h, [], [m2send, m1recv, m4send, m3recv])
-              , ("$P_2$", p2h, [], [m1send, m4recv, m5send])
-              , ("$P_3$", p3h, [], [m3send, m2recv, m5recv])
+     mkWorlds [ (math "P_1", p1h, [], [m2send, m1recv, m4send, m3recv])
+              , (math "P_2", p2h, [], [m1send, m4recv, m5send])
+              , (math "P_3", p3h, [], [m3send, m2recv, m5recv])
               ]
               ex1arrows
               messagePassingArrowOpts
@@ -95,9 +116,9 @@ mpEx1 =
 
 mpEx1Sc :: Diagram B
 mpEx1Sc =
-     mkWorlds [ ("$P_1$", p1h, [], [m2send, m1recv, m4send, m3recv])
-              , ("$P_2$", p2h, [], [m1send, m4recv, m5send])
-              , ("$P_3$", p3h, [], [m3send, m2recv, m5recv])
+     mkWorlds [ (math "P_1", p1h, [], [m2send, m1recv, m4send, m3recv])
+              , (math "P_2", p2h, [], [m1send, m4recv, m5send])
+              , (math "P_3", p3h, [], [m3send, m2recv, m5recv])
               ]
               ex1arrows
               messagePassingArrowOpts
@@ -115,37 +136,37 @@ mpEx1Sc =
 
 mpEx1Vec :: Diagram B
 mpEx1Vec =
-     mkWorlds [ ("$P_1$", p1h, [], [m2send, m1recv, m4send, m3recv])
-              , ("$P_2$", p2h, [], [m1send, m4recv, m5send])
-              , ("$P_3$", p3h, [], [m3send, m2recv, m5recv])
+     mkWorlds [ (math "P_1", p1h, [], [m2send, m1recv, m4send, m3recv])
+              , (math "P_2", p2h, [], [m1send, m4recv, m5send])
+              , (math "P_3", p3h, [], [m3send, m2recv, m5recv])
               ]
               ex1arrows
               messagePassingArrowOpts
   where
-    m1send = scoot . ex1m1send $ vector (0,1,0)
-    m2send = scoot . ex1m2send $ vector (1,0,0)
-    m1recv = scoot . ex1m1recv $ vector (2,1,0)
-    m3send = scoot . ex1m3send $ vector (0,0,1)
-    m4send = scoot . ex1m4send $ vector (3,1,0)
-    m4recv = scoot . ex1m4recv $ vector (3,2,0)
-    m5send = scoot . ex1m5send $ vector (3,3,0)
-    m2recv = scoot . ex1m2recv $ vector (1,0,2)
-    m3recv = scoot . ex1m3recv $ vector (4,1,1)
-    m5recv = scoot . ex1m5recv $ vector (3,3,3)
+    m1send = scootForVector . ex1m1send $ vector (0,1,0)
+    m2send = scootForVector . ex1m2send $ vector (1,0,0)
+    m1recv = scootForVector . ex1m1recv $ vector (2,1,0)
+    m3send = scootForVector . ex1m3send $ vector (0,0,1)
+    m4send = scootForVector . ex1m4send $ vector (3,1,0)
+    m4recv = scootForVector . ex1m4recv $ vector (3,2,0)
+    m5send = scootForVector . ex1m5send $ vector (3,3,0)
+    m2recv = scootForVector . ex1m2recv $ vector (1,0,2)
+    m3recv = scootForVector . ex1m3recv $ vector (4,1,1)
+    m5recv = scootForVector . ex1m5recv $ vector (3,3,3)
 
 ---- Example 2
-ex2m1send lbl = ("m1send", math lbl, 20, littledown, eventCircle)
-ex2m2send lbl = ("m2send", math lbl, 40, littleup, eventCircle)
-ex2m2recv lbl = ("m2recv", math lbl, 60, littledown, eventCircle)
-ex2m3send lbl = ("m3send", math lbl, 80, littledown, eventCircle)
-ex2m3recv lbl = ("m3recv", math lbl, 100, littleup, eventCircle)
-ex2m4send lbl = ("m4send", math lbl, 120, littleup, eventCircle)
-ex2m4recv lbl = ("m4recv", math lbl, 140, littledown, eventCircle)
-ex2m5send lbl = ("m5send", math lbl, 210, littledown, eventCircle)
-ex2m5recv lbl = ("m5recv", math lbl, 230, littleup, eventCircle)
-ex2m6send lbl = ("m6send", math lbl, 250, littleup, eventCircle)
-ex2m6recv lbl = ("m6recv", math lbl, 270, littledown, eventCircle)
-ex2m1recv lbl = ("m1recv", math lbl, 310, littleup, eventCircle)
+ex2m1send = simpleEvent "m1send" 20 slightlyDown
+ex2m2send = simpleEvent "m2send" 40 slightlyUp
+ex2m2recv = simpleEvent "m2recv" 60 slightlyDown
+ex2m3send = simpleEvent "m3send" 80 slightlyDown
+ex2m3recv = simpleEvent "m3recv" 100 slightlyUp
+ex2m4send = simpleEvent "m4send" 120 slightlyUp
+ex2m4recv = simpleEvent "m4recv" 140 slightlyDown
+ex2m5send = simpleEvent "m5send" 210 slightlyDown
+ex2m5recv = simpleEvent "m5recv" 230 slightlyUp
+ex2m6send = simpleEvent "m6send" 250 slightlyUp
+ex2m6recv = simpleEvent "m6recv" 270 slightlyDown
+ex2m1recv = simpleEvent "m1recv" 310 slightlyUp
 
 ex2arrows =
     [ ("m1send", "m1recv")
@@ -158,9 +179,9 @@ ex2arrows =
 
 mpEx2 :: Diagram B
 mpEx2 =
-     mkWorlds [ ("$P_1$", p1h, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
-              , ("$P_2$", p2h, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
-              , ("$P_3$", p3h, [], [ m1send ])
+     mkWorlds [ (math "P_1", p1h, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
+              , (math "P_2", p2h, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
+              , (math "P_3", p3h, [], [ m1send ])
               ]
               ex2arrows
               messagePassingArrowOpts
@@ -179,10 +200,10 @@ mpEx2 =
     m1recv = ex2m1recv $ recv "m_1"
 
 mpEx2Sc :: Diagram B
-mpEx2Sc = pad 1.1 $
-     mkWorlds [ ("$P_1$", p1h, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
-              , ("$P_2$", p2h, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
-              , ("$P_3$", p3h, [], [ m1send ])
+mpEx2Sc =
+     mkWorlds [ (math "P_1", p1h, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
+              , (math "P_2", p2h, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
+              , (math "P_3", p3h, [], [ m1send ])
               ]
               ex2arrows
               messagePassingArrowOpts
@@ -201,67 +222,88 @@ mpEx2Sc = pad 1.1 $
     m1recv = ex2m1recv "10"
 
 mpEx2Vec :: Diagram B
-mpEx2Vec = pad 1.1 $
-     mkWorlds [ ("$P_1$", p1h, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
-              , ("$P_2$", p2h, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
-              , ("$P_3$", p3h, [], [ m1send ])
+mpEx2Vec =
+     mkWorlds [ (math "P_1", p1h, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
+              , (math "P_2", p2h, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
+              , (math "P_3", p3h, [], [ m1send ])
               ]
               ex2arrows
               messagePassingArrowOpts
   where
-    m1send = scoot . ex2m1send $ vector (0,0,1)
-    m2send = scoot . ex2m2send $ vector (1,0,0)
-    m2recv = scoot . ex2m2recv $ vector (1,1,0)
-    m3send = scoot . ex2m3send $ vector (1,2,0)
-    m3recv = scoot . ex2m3recv $ vector (2,2,0)
-    m4send = scoot . ex2m4send $ vector (3,2,0)
-    m4recv = scoot . ex2m4recv $ vector (3,3,0)
-    m5send = scoot . ex2m5send $ vector (3,4,0)
-    m5recv = scoot . ex2m5recv $ vector (4,4,0)
-    m6send = scoot . ex2m6send $ vector (5,4,0)
-    m6recv = scoot . ex2m6recv $ vector (5,5,0)
-    m1recv = scoot . ex2m1recv $ vector (5,4,1)
+    m1send = scootForVector . ex2m1send $ vector (0,0,1)
+    m2send = scootForVector . ex2m2send $ vector (1,0,0)
+    m2recv = scootForVector . ex2m2recv $ vector (1,1,0)
+    m3send = scootForVector . ex2m3send $ vector (1,2,0)
+    m3recv = scootForVector . ex2m3recv $ vector (2,2,0)
+    m4send = scootForVector . ex2m4send $ vector (3,2,0)
+    m4recv = scootForVector . ex2m4recv $ vector (3,3,0)
+    m5send = scootForVector . ex2m5send $ vector (3,4,0)
+    m5recv = scootForVector . ex2m5recv $ vector (4,4,0)
+    m6send = scootForVector . ex2m6send $ vector (5,4,0)
+    m6recv = scootForVector . ex2m6recv $ vector (5,5,0)
+    m1recv = scootForVector . ex2m1recv $ vector (5,4,1)
 
 --- Example 3
+ex3m1send  = simpleEvent "m1send" 30 slightlyUp
+ex3m1recv3 = simpleEvent "m1recv3" 328 slightlyDown
+ex3m1recv2 = simpleEvent "m1recv2" 60 slightlyDown
+ex3m2send  = simpleEvent "m2send" 152 $ Just (-5, 10)
+ex3m2recv1 = simpleEvent "m2recv1" 185 slightlyUp
+ex3m2recv3 = simpleEvent "m2recv3" 165 slightlyDown
+
+ex3Arrows :: [(String, String)]
+ex3Arrows =
+   [ ("m1send", "m1recv1")
+   , ("m1send", "m1recv2")
+   , ("m1send", "m1recv3")
+   , ("m2send", "m2recv1")
+   , ("m2send", "m2recv3")
+   ]
+
 mpEx3 :: Diagram B
-mpEx3 = pad 1.1 $
-     mkWorlds [ ("$P_1$", 70, [], [ m1send, m2recv1])
-              , ("$P_2$", 10, [], [ m1recv2, m2send])
-              , ("$P_3$", -50, [], [ m2recv3, m1recv3 ])
+mpEx3 =
+     mkWorlds [ (math "P_1", p1h, [], [ m1send, m2recv1])
+              , (math "P_2", p2h, [], [ m1recv2, m2send])
+              , (math "P_3", p3h, [], [ m2recv3, m1recv3 ])
               ]
-              [ ("m1send", "m1recv1")
-              , ("m1send", "m1recv2")
-              , ("m1send", "m1recv3")
-              , ("m2send", "m2recv1")
-              , ("m2send", "m2recv3")
-              ]
+              ex3Arrows
               messagePassingArrowOpts
   where
-    m1send  = ("m1send", math $ send "m_1", 30, littleup, eventCircle)
-    m1recv3 = ("m1recv3", math "m_1^\\textrm{recv,3}", 328, littledown, eventCircle)
-    m1recv2 = ("m1recv2", "$m_1^\\textrm{recv,2}$", 60, littledown, eventCircle)
-    m2send  = ("m2send", "$m_2^\\textrm{send}$", 152, Just (-5, -10), eventCircle)
-    m2recv1 = ("m2recv1", "$m_2^\\textrm{recv,1}$", 185, littleup, eventCircle)
-    m2recv3 = ("m2recv3", "$m_2^\\textrm{recv,3}$", 165, littledown, eventCircle)
+    m1send  = ex3m1send $ send "m_1"
+    m1recv2 = ex3m1recv2 $ recv "m_{1, 2}"
+    m2send  = ex3m2send $ send "m_2"
+    m2recv1 = ex3m2recv1 $ recv "m_{2, 1}"
+    m2recv3 = ex3m2recv3 $ recv "m_{2, 3}"
+    m1recv3 = ex3m1recv3 $ recv "m_{1, 3}"
 
 mpEx3Sc :: Diagram B
-mpEx3Sc = pad 1.1 $
-     mkWorlds [ ("$P_1$", 70, [], [ m1send, m2recv1])
-              , ("$P_2$", 10, [], [ m1recv2, m2send])
-              , ("$P_3$", -50, [], [ m2recv3, m1recv3 ])
+mpEx3Sc =
+     mkWorlds [ (math "P_1", p1h, [], [ m1send, m2recv1])
+              , (math "P_2", p2h, [], [ m1recv2, m2send])
+              , (math "P_3", p3h, [], [ m2recv3, m1recv3 ])
               ]
-              [ ("m1send", "m1recv1")
-              , ("m1send", "m1recv2")
-              , ("m1send", "m1recv3")
-              , ("m2send", "m2recv1")
-              , ("m2send", "m2recv3")
-              ]
+              ex3Arrows
               messagePassingArrowOpts
   where
-    m1send  = ("m1send", "1", 30, littleup, eventCircle)
-    m1recv3 = ("m1recv3", "5", 328, littledown, eventCircle)
-    m1recv2 = ("m1recv2", "2", 60, littledown, eventCircle)
-    m2send  = ("m2send", "3", 152, littledown, eventCircle)
-    m2recv1 = ("m2recv1", "4", 185, littleup, eventCircle)
-    m2recv3 = ("m2recv3", "4", 165, littledown, eventCircle)
+    m1send  = ex3m1send "1"
+    m1recv2 = ex3m1recv2 "2"
+    m2send  = ex3m2send "3"
+    m2recv1 = ex3m2recv1 "4"
+    m2recv3 = ex3m2recv3 "4"
+    m1recv3 = ex3m1recv3 "5"
 
+mpEx3Vec :: Diagram B
+mpEx3Vec =
+     mkWorlds [ (math "P_1", p1h, [], [ m1send, m2recv1])
+              , (math "P_2", p2h, [], [ m1recv2, m2send])
+              , (math "P_3", p3h, [], [ m2recv3, m1recv3 ])
+              ]
+              ex3Arrows
+              messagePassingArrowOpts
+  where
+    m1send  = scootForVector . ex3m1send $ vector (1, 0, 0)
+    m1recv2 = scootForVector . ex3m1recv2 $ vector (1, 1, 0)
+    m2send  = scootForVector . ex3m2send $ vector (1, 2, 0)
+    m2recv1 = scootForVector . ex3m2recv1 $ vector (2, 2, 0)
+    m2recv3 = scootForVector . ex3m2recv3 $ vector (1, 2, 1)
+    m1recv3 = scootForVector . ex3m1recv3 $ vector (1, 2, 2)
