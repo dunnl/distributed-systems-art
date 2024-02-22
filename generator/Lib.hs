@@ -86,12 +86,12 @@ mkOperation name labelstr start duration =
 -- (marker, maybe an (x, y) offset for the label, maybe (x, y) size
 -- for the label)
 data EventSpec = EventSpec
-  { marker :: Diagram B
-  , eventName :: String
-  , lbltext   :: String
-  , lblstart  :: Double
-  , lbloffset :: Maybe (Double, Double)
-  , lblsize   :: Maybe (Double, Double)
+  { marker :: Diagram B -- ^ Marker
+  , eventName :: String -- ^ Name
+  , lbltext   :: String -- ^ Label text
+  , lblstart  :: Double -- ^ Start point
+  , lbloffset :: Maybe (Double, Double) -- ^ Label offset
+  , lblsize   :: Maybe (Double, Double) -- ^ Label size if not default
   }
 
 mkEventLabel :: EventSpec -> Diagram B
