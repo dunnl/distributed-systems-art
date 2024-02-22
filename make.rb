@@ -11,13 +11,13 @@ elsif ENV['generator']
   $builder = ENV['generator']
 else
   # Else check try running the generator with cabal (useful for local development)
-  #$builder = "cabal run generator --"
+  $builder = "cabal run generator --"
   # Actually, don't do this. If it has been built locally already, it will crash the system."
-  print "Refusing to run \"cabal run generator\" to prevent the system from hanging"
-  exit 1
+  # print "Refusing to run \"cabal run generator\" to prevent the system from hanging"
+  # exit 1
 end
 
-print "make.rb: Set builder to \"#{$builder}\""
+print "make.rb: Set builder to \"#{$builder}\"\n"
 
 def go (dir, selections, sizes)
   Dir.mkdir dir unless File.directory? dir
@@ -26,7 +26,7 @@ def go (dir, selections, sizes)
   selections.each do |sel|
     sizes.each do |size|
       print "Creating #{sel}\n"
-      command = "#{$builder} --selection #{sel} --output #{dir}/#{sel}.pgf --width #{size}"
+      command = "#{$builder} --selection #{sel} --output #{dir}/#{sel}.pgf"
       Kernel.system(command, :out => fdout, :err => fderr)
     end
   end
@@ -35,12 +35,10 @@ def go (dir, selections, sizes)
 end
 
 def mkImages
-  selections = ["request", "externalorder", "partialorder",
-                "linear1", "linear2", "linear3", "linearTemplate",
-                "nonlinear0", "nonlinear1", "nonlinear2",
-                "sequential1", "sequential2", "sequential3",
-                "nonsequential1", "nonsequential_x", "nonsequential_y",
-                "causal1"]
+  selections = [ "mpEx1", "mpEx1Sc", "mpEx1Vec", "mpEx1Mat",
+                 "mpEx2", "mpEx2Sc", "mpEx2Vec", "mpEx2Mat",
+                 "mpEx3", "mpEx3Sc", "mpEx3Vec", "mpEx3Mat",
+               ]
   sizes = ["1024"]
   go("_out", selections, sizes)
 end

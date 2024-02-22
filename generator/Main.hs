@@ -11,12 +11,15 @@ main = multiMain $
   [ ("mpEx1", mpEx1)
   , ("mpEx1Sc", mpEx1Sc)
   , ("mpEx1Vec", mpEx1Vec)
+  , ("mpEx1Mat", mpEx1Mat)
   , ("mpEx2", mpEx2)
   , ("mpEx2Sc", mpEx2Sc)
   , ("mpEx2Vec", mpEx2Vec)
+  , ("mpEx2Mat", mpEx2Mat)
   , ("mpEx3", mpEx3)
   , ("mpEx3Sc", mpEx3Sc)
   , ("mpEx3Vec", mpEx3Vec)
+  , ("mpEx3Mat", mpEx3Mat)
   ]
 {-
   , ("external1", external1)

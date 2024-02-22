@@ -2,12 +2,15 @@ module MessagePassing
   ( mpEx1
   , mpEx1Sc
   , mpEx1Vec
+  , mpEx1Mat
   , mpEx2
   , mpEx2Sc
   , mpEx2Vec
+  , mpEx2Mat
   , mpEx3
   , mpEx3Sc
   , mpEx3Vec
+  , mpEx3Mat
   )
 where
 
@@ -34,7 +37,29 @@ recv str =
 
 vector :: (Int, Int, Int) -> String
 vector (a, b, c) = if _IN_NOTEBOOK then show (a, b, c) else
-    "\\begin{bmatrix}" ++ show a ++ "\\\\" ++ show b ++ "\\\\" ++ show c ++ "\\end{bmatrix}"
+    "\\begin{pmatrix}" ++ show a ++ sep ++ show b ++ sep ++ show c ++ "\\end{pmatrix}"
+    where
+      --sep = "\\\\" -- vertical
+      sep = " & " -- horizontal
+
+
+matrix :: (Int, Int, Int) -- ^ P1 vector clock
+       -> (Int, Int, Int) -- ^ P2 vector clock
+       -> (Int, Int, Int) -- ^ P3 vector clock
+       -> String
+matrix (p1a, p1b, p1c)
+       (p2a, p2b, p2c)
+       (p3a, p3b, p3c) =
+  if _IN_NOTEBOOK then show "MATRIX" else
+    "\\begin{pmatrix}" ++
+    mconcat [ show p1a, sep, show p1b, sep, show p1c, "\\\\"
+            , show p2a, sep, show p2b, sep, show p2c, "\\\\"
+            , show p3a, sep, show p3b, sep, show p3c, "\\\\"
+            ]
+    ++ "\\end{pmatrix}"
+  where
+      --sep = "\\\\" -- vertical
+      sep = " & " -- horizontal
 
 eventCircle :: Diagram B
 eventCircle  = circle 3 # fc myBlue # lw 1 # lc black
@@ -54,16 +79,33 @@ slightlyUp = Just (0, 10)
 slightlyDown :: Maybe (Double, Double)
 slightlyDown = Just (0, -10)
 
--- Slightly adjust an event to account for the large size of a vector
-scootForVector :: EventSpec -> EventSpec
-scootForVector spec =
-  spec { lbloffset = offsetnew, lblsize = Just (15, 35) }
+-- Adjust an event to account for very large labels
+scootFor :: Double -- ^ Y-axis adjustment
+         -> (Double, Double) -- ^ (X,Y) size of label
+         -> EventSpec -> EventSpec
+scootFor y_adjust (size_x, size_y) spec =
+  spec { lbloffset = lbloffset_new
+       , lblsize   = Just (size_x, size_y) }
   where
-    amt = 10
     Just (xoff, yoff) = lbloffset spec
-    y_new = if yoff > 0 then yoff + amt else yoff - amt
-    offsetnew = Just (xoff, y_new)
+    y_new = if yoff > 0
+            then yoff + y_adjust
+            else yoff - y_adjust
+    lbloffset_new = Just (xoff, y_new)
 
+scootForVector :: EventSpec -> EventSpec
+scootForVector = scootFor y_adjust size_new
+  where
+    -- y_adjust = 15 -- vertical vectors
+    -- size_new = (15, 35) -- vertical vectors
+    y_adjust = 5 -- horizontal vectors
+    size_new = (26, 15)
+
+scootForMatrix :: EventSpec -> EventSpec
+scootForMatrix = scootFor y_adjust size_new
+  where
+    y_adjust = 10 -- horizontal vectors
+    size_new = (30, 36)
 
 -- Create a basic event from some data
 simpleEvent :: String -- ^ Name
@@ -80,7 +122,7 @@ ex1m2send = simpleEvent "m2s" 50 slightlyUp
 ex1m1recv = simpleEvent "m1r" 95 slightlyUp
 ex1m3send = simpleEvent "m3s" 110 slightlyDown
 ex1m4send = simpleEvent "m4s" 140 slightlyUp
-ex1m4recv = simpleEvent "m4r" 195 (Just (6, 10))
+ex1m4recv = simpleEvent "m4r" 195 (Just (10, 10))
 ex1m5send = simpleEvent "m5s" 245 (Just (5, 10))
 ex1m2recv = simpleEvent "m2r" 260 slightlyDown
 ex1m3recv = simpleEvent "m3r" 315 slightlyUp
@@ -154,19 +196,39 @@ mpEx1Vec =
     m3recv = scootForVector . ex1m3recv $ vector (4,1,1)
     m5recv = scootForVector . ex1m5recv $ vector (3,3,3)
 
+mpEx1Mat :: Diagram B
+mpEx1Mat =
+     mkWorlds [ (math "P_1", p1h, [], [m2send, m1recv, m4send, m3recv])
+              , (math "P_2", p2h, [], [m1send, m4recv, m5send])
+              , (math "P_3", p3h, [], [m3send, m2recv, m5recv])
+              ]
+              ex1arrows
+              messagePassingArrowOpts
+  where
+    m1send = scootForMatrix . ex1m1send $ matrix (0,0,0) (0,1,0) (0,0,0)
+    m2send = scootForMatrix . ex1m2send $ matrix (1,0,0) (0,0,0) (0,0,0)
+    m1recv = scootForMatrix . ex1m1recv $ matrix (2,1,0) (0,1,0) (0,0,0)
+    m3send = scootForMatrix . ex1m3send $ matrix (0,0,0) (0,0,0) (0,0,1)
+    m4send = scootForMatrix . ex1m4send $ matrix (3,1,0) (0,1,0) (0,0,0)
+    m4recv = scootForMatrix . ex1m4recv $ matrix (3,1,0) (0,2,0) (0,0,0)
+    m5send = scootForMatrix . ex1m5send $ matrix (3,3,0) (0,0,0) (0,0,0)
+    m2recv = scootForMatrix . ex1m2recv $ matrix (1,0,2) (0,0,0) (0,0,0)
+    m3recv = scootForMatrix . ex1m3recv $ matrix (4,1,1) (0,0,0) (0,0,0)
+    m5recv = scootForMatrix . ex1m5recv $ matrix (3,3,3) (0,0,0) (0,0,0)
+
 ---- Example 2
-ex2m1send = simpleEvent "m1send" 20 slightlyDown
-ex2m2send = simpleEvent "m2send" 40 slightlyUp
-ex2m2recv = simpleEvent "m2recv" 60 slightlyDown
+ex2m1send = simpleEvent "m1send" 10 slightlyDown
+ex2m2send = simpleEvent "m2send" 20 slightlyUp
+ex2m2recv = simpleEvent "m2recv" 50 slightlyDown
 ex2m3send = simpleEvent "m3send" 80 slightlyDown
-ex2m3recv = simpleEvent "m3recv" 100 slightlyUp
-ex2m4send = simpleEvent "m4send" 120 slightlyUp
-ex2m4recv = simpleEvent "m4recv" 140 slightlyDown
-ex2m5send = simpleEvent "m5send" 210 slightlyDown
-ex2m5recv = simpleEvent "m5recv" 230 slightlyUp
-ex2m6send = simpleEvent "m6send" 250 slightlyUp
-ex2m6recv = simpleEvent "m6recv" 270 slightlyDown
-ex2m1recv = simpleEvent "m1recv" 310 slightlyUp
+ex2m3recv = simpleEvent "m3recv" 110 slightlyUp
+ex2m4send = simpleEvent "m4send" 140 slightlyUp
+ex2m4recv = simpleEvent "m4recv" 170 slightlyDown
+ex2m5send = simpleEvent "m5send" 230 slightlyDown
+ex2m5recv = simpleEvent "m5recv" 260 slightlyUp
+ex2m6send = simpleEvent "m6send" 290 slightlyUp
+ex2m6recv = simpleEvent "m6recv" 320 slightlyDown
+ex2m1recv = simpleEvent "m1recv" 340 slightlyUp
 
 ex2arrows =
     [ ("m1send", "m1recv")
@@ -243,6 +305,29 @@ mpEx2Vec =
     m6recv = scootForVector . ex2m6recv $ vector (5,5,0)
     m1recv = scootForVector . ex2m1recv $ vector (5,4,1)
 
+mpEx2Mat :: Diagram B
+mpEx2Mat =
+     mkWorlds [ (math "P_1", p1h, [], [ m2send, m3recv, m4send, m5recv, m6send, m1recv ])
+              , (math "P_2", p2h, [], [ m2recv, m3send, m4recv, m5send, m6recv ])
+              , (math "P_3", p3h, [], [ m1send ])
+              ]
+              ex2arrows
+              messagePassingArrowOpts
+  where
+    m1send = scootForMatrix . ex2m1send $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m2send = scootForMatrix . ex2m2send $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m2recv = scootForMatrix . ex2m2recv $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m3send = scootForMatrix . ex2m3send $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m3recv = scootForMatrix . ex2m3recv $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m4send = scootForMatrix . ex2m4send $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m4recv = scootForMatrix . ex2m4recv $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m5send = scootForMatrix . ex2m5send $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m5recv = scootForMatrix . ex2m5recv $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m6send = scootForMatrix . ex2m6send $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m6recv = scootForMatrix . ex2m6recv $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m1recv = scootForMatrix . ex2m1recv $ matrix (0,0,0) (0,0,0) (0,0,0)
+
+
 --- Example 3
 ex3m1send  = simpleEvent "m1send" 30 slightlyUp
 ex3m1recv3 = simpleEvent "m1recv3" 328 slightlyDown
@@ -307,3 +392,19 @@ mpEx3Vec =
     m2recv1 = scootForVector . ex3m2recv1 $ vector (2, 2, 0)
     m2recv3 = scootForVector . ex3m2recv3 $ vector (1, 2, 1)
     m1recv3 = scootForVector . ex3m1recv3 $ vector (1, 2, 2)
+
+mpEx3Mat :: Diagram B
+mpEx3Mat =
+     mkWorlds [ (math "P_1", p1h, [], [ m1send, m2recv1])
+              , (math "P_2", p2h, [], [ m1recv2, m2send])
+              , (math "P_3", p3h, [], [ m2recv3, m1recv3 ])
+              ]
+              ex3Arrows
+              messagePassingArrowOpts
+  where
+    m1send  = scootForMatrix . ex3m1send  $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m1recv2 = scootForMatrix . ex3m1recv2 $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m2send  = scootForMatrix . ex3m2send  $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m2recv1 = scootForMatrix . ex3m2recv1 $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m2recv3 = scootForMatrix . ex3m2recv3 $ matrix (0,0,0) (0,0,0) (0,0,0)
+    m1recv3 = scootForMatrix . ex3m1recv3 $ matrix (0,0,0) (0,0,0) (0,0,0)
