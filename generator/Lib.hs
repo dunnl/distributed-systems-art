@@ -1,5 +1,6 @@
 module Lib where
 
+import Data.Maybe (fromMaybe)
 import Backend
 import Diagrams.Prelude
 
@@ -33,19 +34,34 @@ _IN_NOTEBOOK = False
 _PROCLINE_WIDTH :: Double
 _PROCLINE_WIDTH = 1.5
 
+_DEFAULT_LABEL_SIZE :: (Double, Double)
+_DEFAULT_LABEL_SIZE = (22, 10)
+
+-- Default font size, in Diagrams' "local" units
+_DEFAULT_FONT_LSIZE :: Double
+_DEFAULT_FONT_LSIZE = 5
+
+--- Alternate definition (===) that keeps the origin on BOTTOM
+onTopOf :: Diagram B -> Diagram B -> Diagram B
+onTopOf = beside' unit_Y
+  where
+    beside' = flip . beside . negated
+
 math :: String -> String
 math str = if _IN_NOTEBOOK then str else "$" ++ str ++ "$"
 
-mkProcessLabel :: String -> Diagram B
-mkProcessLabel lbl =
-  (text lbl # fontSizeL 5 # fc black <>
-  rect 30 30 # lw 0 # lw 0) # translateX (-15)
+---------------
 
 processLineArrowOps :: ArrowOpts Double
 processLineArrowOps =
   with & arrowHead  .~ tri
        & headLength .~ small
        & shaftStyle %~ lwL _PROCLINE_WIDTH . lc black
+
+mkProcessLabel :: String -> Diagram B
+mkProcessLabel lbl =
+  (text lbl # fontSizeL _DEFAULT_FONT_LSIZE # fc black <>
+  rect 30 30 # lw 0 # lw 0) # translateX (-15)
 
 -- Make a process timeline, a simple _WORLDLENGTH-length line with a label on the left
 mkProcessLine :: String -> Diagram B
@@ -62,7 +78,7 @@ mkOperationLabel :: String
                  -> Diagram B
 mkOperationLabel label =
   circle 0.1 # lw 0 <>
-  text label # fontSizeL 5 # translateY 5
+  text label # fontSizeL _DEFAULT_FONT_LSIZE # translateY 5
 
 mkOperation :: String -- ^ Name
             -> String -- ^ Label
@@ -70,7 +86,7 @@ mkOperation :: String -- ^ Name
             -> Double -- ^ Duration
             -> Diagram B
 mkOperation name labelstr start duration =
-  (label === operation) # translate offset
+  (label `onTopOf` operation) # translate offset
   where
     label = mkOperationLabel labelstr
     borderwidth = 2
@@ -96,12 +112,12 @@ data EventSpec = EventSpec
 
 mkEventLabel :: EventSpec -> Diagram B
 mkEventLabel (EventSpec _ _ lbl start moff msize) =
-  (txt <> background) # offset_label
+  (txt <> background) # translate (r2 offset)
   where
-    offset_label = maybe id (\offset -> translate (r2 offset)) moff
-    (lblx, lbly) = maybe (10, 5) id msize
-    background = rect lblx lbly # lw 0 # fc green
-    txt = text lbl # fontSizeL 5 # fc black
+    offset = fromMaybe (0, 0) moff
+    (lblx, lbly) = fromMaybe _DEFAULT_LABEL_SIZE msize
+    background = rect lblx lbly # lw 0 # fc white
+    txt = text lbl # fontSizeL _DEFAULT_FONT_LSIZE # fc black
 
 mkEvent :: EventSpec
         -> Diagram B
@@ -109,7 +125,7 @@ mkEvent spec@(EventSpec marker name labelstr start moff msize) =
   (marker <> label) # named name # translateX start
   where
     prelabel = mkEventLabel spec
-    label =if labelstr == "" then mempty else prelabel
+    label = if labelstr == "" then mempty else prelabel
 
 attach' :: (IsName n1, IsName n2) => ArrowOpts Double -> (n1, n2) -> Diagram B -> Diagram B
 attach' opts (n1, n2) =
